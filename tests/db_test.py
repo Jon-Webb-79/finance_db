@@ -42,6 +42,11 @@ from finance_db.database import create_database
 
 
 def test_no_database():
+    """
+    This function tests the create_database function to ensure it fails properly
+    if a user attempts to create a database with a name of an already existing
+    database in that directory
+    """
     # create a test database using create_database function
     file_name = "../data/test/duplicate_database"
     full_name = file_name + ".db"
@@ -72,6 +77,11 @@ def test_no_database():
 
 
 def test_create_database():
+    """
+    This function tests the create_database function to ensure it correctly
+    creates a database.  This function ensures that the database is created, and
+    that the database contains the correct schema
+    """
     # create a test database using create_database function
     file_name = "../data/test/test_database"
     create_database(file_name)
