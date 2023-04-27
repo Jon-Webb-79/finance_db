@@ -46,7 +46,7 @@ profile = 'black'
 
 [tool.black]
 line-length = 90
-target-version = ['py38', 'py39', 'py310']
+target-version = ['py310']
 include = '\.pyi?$'
 exclude = '''
 /(
