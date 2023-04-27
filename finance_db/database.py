@@ -3,12 +3,11 @@
 # - If a package and a module within the package is to be imported
 #   uncomment the following lines where dir is the directory containing
 #   the source files.  These lines should go above the module imports
+import datetime
 import os
 import sqlite3
 import sys
 
-# import sys
-# sys.path.insert(1, os.path.abspath(dir))
 # ==========================================================================================
 # ==========================================================================================
 
@@ -41,6 +40,9 @@ def create_database(file_name: str) -> None:
     | date          | DATE NOT NULL    | Date of the expense                  |
     +---------------+------------------+--------------------------------------+
     | time          | TIME NOT NULL    | Time of the expense                  |
+    +---------------+------------------+--------------------------------------+
+    | expense_type  | TEXT NOT NULL    | type of expense, only allows entires |
+    |               |                  | of 'credit' or 'debit'               |
     +---------------+------------------+--------------------------------------+
     | expense_value | REAL NOT NULL    | Value of the expense                 |
     +---------------+------------------+--------------------------------------+
@@ -107,6 +109,7 @@ def create_database(file_name: str) -> None:
                 (id INTEGER PRIMARY KEY,
                  date DATE NOT NULL,
                  time TIME NOT NULL,
+                 expense_type TEXT NOT NULL CHECK(expense_type IN('credit', 'debit')),
                  expense_value REAL NOT NULL,
                  company TEXT NOT NULL,
                  description TEXT NOT NULL,
@@ -134,6 +137,49 @@ def create_database(file_name: str) -> None:
     conn.close()
 
     sys.stdout.write(f"Database file '{file_name}' created successfully.")
+
+
+# ------------------------------------------------------------------------------------------
+
+
+def add_expense(
+    file_name: str, expense_value: float, company: str, description: str
+) -> None:
+    """
+    Adds a new expense to the expenses table in the specified SQLite database
+    file, with the specified expense value, company, and description. The date,
+    time, modified date, and modified time are automatically entered based on
+    the current computer time.
+
+    :param file_name: The name of the SQLite database file to add the expense to
+    :param expense_value: The value of the expense to add
+    :param company: The name of the company associated with the expense
+    :param description: A description of the expense
+    """
+    # Open a connection to the database
+    conn = sqlite3.connect(file_name)
+
+    # Get the current date and time
+    current_date = datetime.date.today()
+    current_time = datetime.datetime.now().time()
+
+    # Insert the new expense into the expenses table
+    query = "INSERT INTO expenses (date, time, expense_value, company, description, "
+    insert_query = query + " modified_date, modified_time) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    values = (
+        current_date,
+        current_time,
+        expense_value,
+        company,
+        description,
+        current_date,
+        current_time,
+    )
+    conn.execute(insert_query, values)
+
+    # Commit the changes and close the connection
+    conn.commit()
+    conn.close()
 
 
 # ==========================================================================================

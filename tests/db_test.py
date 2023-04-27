@@ -108,11 +108,12 @@ def test_create_database():
         (0, "id", "INTEGER", 0, None, 1),
         (1, "date", "DATE", 1, None, 0),
         (2, "time", "TIME", 1, None, 0),
-        (3, "expense_value", "REAL", 1, None, 0),
-        (4, "company", "TEXT", 1, None, 0),
-        (5, "description", "TEXT", 1, None, 0),
-        (6, "modified_date", "DATE", 1, "CURRENT_DATE", 0),
-        (7, "modified_time", "TIME", 1, "CURRENT_TIME", 0),
+        (3, "expense_type", "TEXT", 1, None, 0),
+        (4, "expense_value", "REAL", 1, None, 0),
+        (5, "company", "TEXT", 1, None, 0),
+        (6, "description", "TEXT", 1, None, 0),
+        (7, "modified_date", "DATE", 1, "CURRENT_DATE", 0),
+        (8, "modified_time", "TIME", 1, "CURRENT_TIME", 0),
     ]
     assert columns == expected_columns
 
