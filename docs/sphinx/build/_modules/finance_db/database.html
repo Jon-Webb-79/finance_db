@@ -1,0 +1,209 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>finance_db.database &#8212; finance_db 0.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/classic.css" />
+
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">finance_db 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">finance_db.database</a></li>
+      </ul>
+    </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+
+  <h1>Source code for finance_db.database</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Import necessary packages here</span>
+
+<span class="c1"># - If a package and a module within the package is to be imported</span>
+<span class="c1">#   uncomment the following lines where dir is the directory containing</span>
+<span class="c1">#   the source files.  These lines should go above the module imports</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="c1"># import sys</span>
+<span class="c1"># sys.path.insert(1, os.path.abspath(dir))</span>
+<span class="c1"># ==========================================================================================</span>
+<span class="c1"># ==========================================================================================</span>
+
+<span class="c1"># File:    main.py</span>
+<span class="c1"># Date:    April 26, 2023</span>
+<span class="c1"># Author:  Jonathan A. Webb</span>
+<span class="c1"># Purpose: This file contains functions that will create a database, add, subtract, and</span>
+<span class="c1">#          modify data in the database</span>
+<span class="c1"># ==========================================================================================</span>
+<span class="c1"># ==========================================================================================</span>
+<span class="c1"># Insert Code here</span>
+
+
+<div class="viewcode-block" id="create_database"><a class="viewcode-back" href="../../Database.html#finance_db.database.create_database">[docs]</a><span class="k">def</span> <span class="nf">create_database</span><span class="p">(</span><span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param file_name: The name of the database to be created without a .db file</span>
+<span class="sd">                      extension</span>
+
+<span class="sd">    This function will create a SQLite table for expenses and another table</span>
+<span class="sd">    for sales.  The tables have the following schema.</span>
+
+<span class="sd">    Expenses Table:</span>
+
+<span class="sd">    +---------------+------------------+--------------------------------------+</span>
+<span class="sd">    | Column        | Data Type        | Description                          |</span>
+<span class="sd">    +===============+==================+======================================+</span>
+<span class="sd">    | id            | INTEGER PRIMARY  | Unique identifier for the expense    |</span>
+<span class="sd">    |               | KEY              |                                      |</span>
+<span class="sd">    +---------------+------------------+--------------------------------------+</span>
+<span class="sd">    | date          | DATE NOT NULL    | Date of the expense                  |</span>
+<span class="sd">    +---------------+------------------+--------------------------------------+</span>
+<span class="sd">    | time          | TIME NOT NULL    | Time of the expense                  |</span>
+<span class="sd">    +---------------+------------------+--------------------------------------+</span>
+<span class="sd">    | expense_value | REAL NOT NULL    | Value of the expense                 |</span>
+<span class="sd">    +---------------+------------------+--------------------------------------+</span>
+<span class="sd">    | company       | TEXT NOT NULL    | Company associated with the expense  |</span>
+<span class="sd">    +---------------+------------------+--------------------------------------+</span>
+<span class="sd">    | description   | TEXT NOT NULL    | Description of the expense           |</span>
+<span class="sd">    +---------------+------------------+--------------------------------------+</span>
+<span class="sd">    | modified_date | DATE NOT NULL    | Date when the expense was last       |</span>
+<span class="sd">    |               |                  | modified. (default: current date)    |</span>
+<span class="sd">    +---------------+------------------+--------------------------------------+</span>
+<span class="sd">    | modified_time | TIME NOT NULL    | Time when the expense was last       |</span>
+<span class="sd">    |               |                  | modified. (default: current time)    |</span>
+<span class="sd">    +---------------+------------------+--------------------------------------+</span>
+
+<span class="sd">    Sales Table:</span>
+
+<span class="sd">    +---------------+------------------+---------------------------------------+</span>
+<span class="sd">    | Column        | Data Type        | Description                           |</span>
+<span class="sd">    +===============+==================+=======================================+</span>
+<span class="sd">    | id            | INTEGER PRIMARY  | Unique identifier for the sale        |</span>
+<span class="sd">    |               | KEY              |                                       |</span>
+<span class="sd">    +---------------+------------------+---------------------------------------+</span>
+<span class="sd">    | date          | DATE NOT NULL    | Date of the sale                      |</span>
+<span class="sd">    +---------------+------------------+---------------------------------------+</span>
+<span class="sd">    | time          | TIME NOT NULL    | Time of the sale                      |</span>
+<span class="sd">    +---------------+------------------+---------------------------------------+</span>
+<span class="sd">    | first_name    | TEXT NOT NULL    | First name of the customer            |</span>
+<span class="sd">    +---------------+------------------+---------------------------------------+</span>
+<span class="sd">    | last_name     | TEXT NOT NULL    | Last name of the customer             |</span>
+<span class="sd">    +---------------+------------------+---------------------------------------+</span>
+<span class="sd">    | email_address | TEXT NOT NULL    | Email address of the customer         |</span>
+<span class="sd">    +---------------+------------------+---------------------------------------+</span>
+<span class="sd">    | phone_number  | TEXT             | Phone number of the customer          |</span>
+<span class="sd">    |               |                  | (optional)                            |</span>
+<span class="sd">    +---------------+------------------+---------------------------------------+</span>
+<span class="sd">    | product_id    | INTEGER NOT NULL | Unique identifier for the product     |</span>
+<span class="sd">    +---------------+------------------+---------------------------------------+</span>
+<span class="sd">    | modified_date | DATE NOT NULL    | Date when the sale was last modified. |</span>
+<span class="sd">    |               |                  | (default: current date)               |</span>
+<span class="sd">    +---------------+------------------+---------------------------------------+</span>
+<span class="sd">    | modified_time | TIME NOT NULL    | Time when the sale was last modified. |</span>
+<span class="sd">    |               |                  | (default: current time)               |</span>
+<span class="sd">    +---------------+------------------+---------------------------------------+</span>
+
+<span class="sd">    The modified_date and modified_time fields are automatically updated</span>
+<span class="sd">    to the current date and time whenever a row is inserted or updated.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># append .db extension to file name</span>
+    <span class="n">file_name</span> <span class="o">=</span> <span class="n">file_name</span> <span class="o">+</span> <span class="s1">&#39;.db&#39;</span>
+
+    <span class="c1"># check if database already exists</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_name</span><span class="p">):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Database &#39;</span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2">&#39; already exists. Choose a different file name.&quot;</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="c1"># create a new database file and connect to it</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+    <span class="c1"># create the expenses table</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;CREATE TABLE expenses</span>
+<span class="s1">                (id INTEGER PRIMARY KEY,</span>
+<span class="s1">                 date DATE NOT NULL,</span>
+<span class="s1">                 time TIME NOT NULL,</span>
+<span class="s1">                 expense_value REAL NOT NULL,</span>
+<span class="s1">                 company TEXT NOT NULL,</span>
+<span class="s1">                 description TEXT NOT NULL,</span>
+<span class="s1">                 modified_date DATE NOT NULL DEFAULT CURRENT_DATE,</span>
+<span class="s1">                 modified_time TIME NOT NULL DEFAULT CURRENT_TIME)&#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c1"># create the sales table</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;CREATE TABLE sales</span>
+<span class="s1">                (id INTEGER PRIMARY KEY,</span>
+<span class="s1">                 date DATE NOT NULL,</span>
+<span class="s1">                 time TIME NOT NULL,</span>
+<span class="s1">                 first_name TEXT NOT NULL,</span>
+<span class="s1">                 last_name TEXT NOT NULL,</span>
+<span class="s1">                 email_address TEXT NOT NULL,</span>
+<span class="s1">                 phone_number TEXT,</span>
+<span class="s1">                 product_id INTEGER NOT NULL,</span>
+<span class="s1">                 modified_date DATE NOT NULL DEFAULT CURRENT_DATE,</span>
+<span class="s1">                 modified_time TIME NOT NULL DEFAULT CURRENT_TIME)&#39;&#39;&#39;</span><span class="p">)</span>
+
+    <span class="c1"># commit the changes and close the connection</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Database file &#39;</span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s2">&#39; created successfully.&quot;</span><span class="p">)</span></div>
+<span class="c1"># ==========================================================================================</span>
+<span class="c1"># ==========================================================================================</span>
+<span class="c1"># eof</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">finance_db 0.1.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">finance_db.database</a></li>
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2023, Jonathan A. Webb.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 6.2.1.
+    </div>
+  </body>
+</html>

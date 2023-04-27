@@ -13,12 +13,12 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("../../../src"))
+sys.path.insert(0, os.path.abspath("../../../"))
 
 # -- Project information -----------------------------------------------------
 
-project = "Project_Name"
-copyright = "2021, Jonathan A. Webb"
+project = "finance_db"
+copyright = "2023, Jonathan A. Webb"
 author = "Jonathan A. Webb"
 
 # The full version, including alpha/beta/rc tags
@@ -36,6 +36,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.githubpages",
+    "sphinx.ext.autosectionlabel",
 ]
 autodoc_member_order = "groupwise"
 autodoc_default_flags = ["members", "show-inheritance"]
@@ -55,9 +56,5 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "nature"
-
-# Add any paths that contain custom static files (such as style sheets) here,
-# relative to this directory. They are copied after the builtin static files,
-# so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ["_static"]
+html_theme = "classic"
+html_theme_options = {"rightsidebar": False}
