@@ -1,5 +1,9 @@
 # Import necessary packages here
 # import pytest
+import os
+import sqlite3
+
+from finance_db.database import create_database
 
 # - If a package and a module within the package is to be imported
 #   uncomment the following lines where dir is the directory containing
@@ -35,9 +39,64 @@
 # Insert Code here
 
 
-def give_name_here_test():
-    # Add test here
-    pass
+def test_create_database():
+    # create a test database using create_database function
+    file_name = "../data/test/test_database"
+    create_database(file_name)
+
+    # connect to the test database
+    conn = sqlite3.connect(file_name + ".db")
+
+    # create a cursor object
+    c = conn.cursor()
+
+    # get a list of all tables in the database
+    c.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    tables = c.fetchall()
+
+    # verify that the database has two tables: expenses and sales
+    assert len(tables) == 2
+    assert ("expenses",) in tables
+    assert ("sales",) in tables
+
+    # verify the schema of the expenses table
+    c.execute("PRAGMA table_info(expenses)")
+    columns = c.fetchall()
+    expected_columns = [
+        (0, "id", "INTEGER", 0, None, 1),
+        (1, "date", "DATE", 1, None, 0),
+        (2, "time", "TIME", 1, None, 0),
+        (3, "expense_value", "REAL", 1, None, 0),
+        (4, "company", "TEXT", 1, None, 0),
+        (5, "description", "TEXT", 1, None, 0),
+        (6, "modified_date", "DATE", 1, "CURRENT_DATE", 0),
+        (7, "modified_time", "TIME", 1, "CURRENT_TIME", 0),
+    ]
+    assert columns == expected_columns
+
+    # verify the schema of the sales table
+    c.execute("PRAGMA table_info(sales)")
+    columns = c.fetchall()
+    expected_columns = [
+        (0, "id", "INTEGER", 0, None, 1),
+        (1, "date", "DATE", 1, None, 0),
+        (2, "time", "TIME", 1, None, 0),
+        (3, "first_name", "TEXT", 1, None, 0),
+        (4, "last_name", "TEXT", 1, None, 0),
+        (5, "email_address", "TEXT", 1, None, 0),
+        (6, "phone_number", "TEXT", 0, None, 0),
+        (7, "product_id", "INTEGER", 1, None, 0),
+        (8, "modified_date", "DATE", 1, "CURRENT_DATE", 0),
+        (9, "modified_time", "TIME", 1, "CURRENT_TIME", 0),
+    ]
+    assert columns == expected_columns
+
+    # close the database connection
+    conn.close()
+
+    # Delete database if it exists
+    if os.path.exists(file_name + ".db"):
+        os.remove(file_name + ".db")
 
 
 # ==========================================================================================
