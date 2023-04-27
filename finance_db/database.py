@@ -22,7 +22,7 @@ import sys
 # Insert Code here
 
 
-def create_database(file_name):
+def create_database(file_name: str) -> None:
     # append .db extension to file name
     file_name = file_name + ".db"
 

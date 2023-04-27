@@ -2,6 +2,8 @@
 # import pytest
 import os
 import sqlite3
+import sys
+from io import StringIO
 
 from finance_db.database import create_database
 
@@ -37,6 +39,36 @@ from finance_db.database import create_database
 # ==========================================================================================
 # ==========================================================================================
 # Insert Code here
+
+
+def test_no_database():
+    # create a test database using create_database function
+    file_name = "../data/test/duplicate_database"
+    full_name = file_name + ".db"
+    # create a test database using create_database function
+    create_database(file_name)
+
+    # redirect stderr to a buffer to capture warning messages
+    old_stderr = sys.stderr
+    sys.stderr = StringIO()
+
+    # attempt to create the same database again
+    create_database(file_name)
+
+    msg = f"Database '{full_name}' already exists. Choose a different file name."
+    # check that a warning message was printed to stderr
+    warning_message = sys.stderr.getvalue()
+    assert warning_message == msg
+
+    # restore original stderr and delete the test database file
+    sys.stderr = old_stderr
+
+    # Delete filename if it exists
+    if os.path.exists(file_name + ".db"):
+        os.remove(file_name + ".db")
+
+
+# ------------------------------------------------------------------------------------------
 
 
 def test_create_database():
