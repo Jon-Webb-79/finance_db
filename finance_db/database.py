@@ -1,9 +1,4 @@
 # Import necessary packages here
-
-# - If a package and a module within the package is to be imported
-#   uncomment the following lines where dir is the directory containing
-#   the source files.  These lines should go above the module imports
-import datetime
 import os
 import sqlite3
 import sys
@@ -95,20 +90,23 @@ def create_database(file_name: str) -> None:
 
     # check if database already exists
     if os.path.exists(file_name):
-        msg = f"Database '{file_name}' already exists. Choose a different file name."
+        msg = f"Database '{file_name}' already exists. Choose a different file name.\n"
         sys.stderr.write(msg)
         return
 
     # create a new database file and connect to it
-    conn = sqlite3.connect(file_name)
-    c = conn.cursor()
+    try:
+        conn = sqlite3.connect(file_name)
+        c = conn.cursor()
+    except sqlite3.Error as e:
+        raise sqlite3.Error("Unable to connect to database)") from e
 
     # create the expenses table
     c.execute(
         """CREATE TABLE expenses
                 (id INTEGER PRIMARY KEY,
-                 date DATE NOT NULL,
-                 time TIME NOT NULL,
+                 date DATE NOT NULL DEFAULT CURRENT_DATE,
+                 time TIME NOT NULL DEFAULT CURRENT_TIME,
                  expense_type TEXT NOT NULL CHECK(expense_type IN('credit', 'debit')),
                  expense_value REAL NOT NULL,
                  company TEXT NOT NULL,
@@ -121,8 +119,8 @@ def create_database(file_name: str) -> None:
     c.execute(
         """CREATE TABLE sales
                 (id INTEGER PRIMARY KEY,
-                 date DATE NOT NULL,
-                 time TIME NOT NULL,
+                 date DATE NOT NULL DEFAULT CURRENT_DATE,
+                 time TIME NOT NULL DEFAULT CURRENT_TIME,
                  first_name TEXT NOT NULL,
                  last_name TEXT NOT NULL,
                  email_address TEXT NOT NULL,
@@ -143,7 +141,11 @@ def create_database(file_name: str) -> None:
 
 
 def add_expense(
-    file_name: str, expense_value: float, company: str, description: str
+    file_name: str,
+    expense_type: str,
+    expense_value: float,
+    company: str,
+    description: str,
 ) -> None:
     """
     Adds a new expense to the expenses table in the specified SQLite database
@@ -152,33 +154,37 @@ def add_expense(
     the current computer time.
 
     :param file_name: The name of the SQLite database file to add the expense to
+    :param expense_type: Must be either 'credit', or 'debit'. Case sensitive!
     :param expense_value: The value of the expense to add
     :param company: The name of the company associated with the expense
     :param description: A description of the expense
+    :raises ValueError: If an invalid expense type is provided
+    :raises sqlite3.Error: If there is an error inserting the expense into the
+                           database
     """
-    # Open a connection to the database
-    conn = sqlite3.connect(file_name)
+    # Check that the expense type is valid
+    if expense_type not in ["credit", "debit"]:
+        raise ValueError("Invalid expense type. Must be either 'credit' or 'debit'.")
 
-    # Get the current date and time
-    current_date = datetime.date.today()
-    current_time = datetime.datetime.now().time()
+    if not os.path.exists(file_name):
+        msg = f"Database '{file_name}' does not exist."
+        sys.stderr.write(msg)
+        return
 
-    # Insert the new expense into the expenses table
-    query = "INSERT INTO expenses (date, time, expense_value, company, description, "
-    insert_query = query + " modified_date, modified_time) VALUES (?, ?, ?, ?, ?, ?, ?)"
-    values = (
-        current_date,
-        current_time,
-        expense_value,
-        company,
-        description,
-        current_date,
-        current_time,
-    )
-    conn.execute(insert_query, values)
+    try:
+        conn = sqlite3.connect(file_name)
+        c = conn.cursor()
+        c.execute(
+            f"""INSERT INTO expenses (expense_type, expense_value,
+                     company, description) VALUES ('{expense_type}',
+                     {expense_value}, '{company}', '{description}')"""
+        )
+        conn.commit()
+        sys.stdout.write(f"Data succesfully written to '{file_name}'")
+    except sqlite3.Error as e:
+        raise sqlite3.Error("Error inserting expense into database") from e
 
-    # Commit the changes and close the connection
-    conn.commit()
+    # Close the database
     conn.close()
 
 

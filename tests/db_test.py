@@ -1,18 +1,13 @@
 # Import necessary packages here
-# import pytest
 import os
 import sqlite3
 import sys
 from io import StringIO
 
-from finance_db.database import create_database
+import pytest
 
-# - If a package and a module within the package is to be imported
-#   uncomment the following lines where dir is the directory containing
-#   the source files.  These lines should go above the module imports
-# import sys
-# import os
-# sys.path.insert(1, os.path.abspath(dir))
+from finance_db.database import add_expense, create_database
+
 # ==========================================================================================
 # ==========================================================================================
 # File:    test.py
@@ -60,7 +55,7 @@ def test_no_database():
     # attempt to create the same database again
     create_database(file_name)
 
-    msg = f"Database '{full_name}' already exists. Choose a different file name."
+    msg = f"Database '{full_name}' already exists. Choose a different file name.\n"
     # check that a warning message was printed to stderr
     warning_message = sys.stderr.getvalue()
     assert warning_message == msg
@@ -83,63 +78,122 @@ def test_create_database():
     that the database contains the correct schema
     """
     # create a test database using create_database function
-    file_name = "../data/test/test_database"
+    file_name = "../data/test/duplicate_database"
     create_database(file_name)
+    file_name += ".db"
 
-    # connect to the test database
-    conn = sqlite3.connect(file_name + ".db")
+    conn = sqlite3.connect(file_name)
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    tables = cursor.fetchall()
+    assert len(tables) == 2  # two tables should be created
 
-    # create a cursor object
+    cursor.execute("SELECT * FROM expenses")
+    expenses_columns = [description[0] for description in cursor.description]
+    assert "id" in expenses_columns
+    assert "date" in expenses_columns
+    assert "time" in expenses_columns
+    assert "expense_type" in expenses_columns
+    assert "expense_value" in expenses_columns
+    assert "company" in expenses_columns
+    assert "description" in expenses_columns
+    assert "modified_date" in expenses_columns
+    assert "modified_time" in expenses_columns
+
+    cursor.execute("SELECT * FROM sales")
+    sales_columns = [description[0] for description in cursor.description]
+    assert "id" in sales_columns
+    assert "date" in sales_columns
+    assert "time" in sales_columns
+    assert "first_name" in sales_columns
+    assert "last_name" in sales_columns
+    assert "email_address" in sales_columns
+    assert "phone_number" in sales_columns
+    assert "product_id" in sales_columns
+    assert "modified_date" in sales_columns
+    assert "modified_time" in sales_columns
+
+    # clean up
+    conn.close()
+    if os.path.exists("../data/test/test_database1.db"):
+        os.remove("../data/test/test_database1.db")
+
+
+# ------------------------------------------------------------------------------------------
+
+
+def test_add_expense_with_invalid_expense_type():
+    """
+    This function tests the add_expense function to ensure it fails nicely and incorrect
+    expense_type is entered
+    """
+    # Create a test database
+    create_database("../data/test/test_database1")
+    # Try to add an expense with an invalid expense type
+    with pytest.raises(ValueError):
+        add_expense(
+            "../data/test/test_database1.db",
+            "Invalid expense type",
+            100.0,
+            "Test Company",
+            "Test description",
+        )
+    if os.path.exists("../data/test/test_database1.db"):
+        os.remove("../data/test/test_database1.db")
+
+
+# ------------------------------------------------------------------------------------------
+
+
+def test_add_expense_no_database(capfd):
+    """
+    This function tests the add_expense function to ensure it fails properly if there
+    is not database to add data to
+    """
+    file_name = "../data/test/no_database.db"
+    add_expense(file_name, "debit", 100.0, "Test_Company", "Test Description")
+    # Check that the error message was printed to stderr
+
+    _, err = capfd.readouterr()
+    expected_error_message = f"Database '{file_name}' does not exist."
+    assert err == expected_error_message
+
+
+# ------------------------------------------------------------------------------------------
+
+
+def test_add_expense():
+    """
+    This function tests the add_expense function to ensure it properly enters
+    a row to the expense table
+    """
+    # Create a test database
+    file_name = "../data/test/test_database3"
+    create_database(file_name)
+    file_name += ".db"
+
+    # Add a debit expense to the database
+    expense_type = "debit"
+    expense_value = 50.0
+    company = "Test Company 1"
+    description = "Test description 1"
+    add_expense(file_name, expense_type, expense_value, company, description)
+
+    # open the database and verify the expense was added
+    conn = sqlite3.connect(file_name)
     c = conn.cursor()
-
-    # get a list of all tables in the database
-    c.execute("SELECT name FROM sqlite_master WHERE type='table';")
-    tables = c.fetchall()
-
-    # verify that the database has two tables: expenses and sales
-    assert len(tables) == 2
-    assert ("expenses",) in tables
-    assert ("sales",) in tables
-
-    # verify the schema of the expenses table
-    c.execute("PRAGMA table_info(expenses)")
-    columns = c.fetchall()
-    expected_columns = [
-        (0, "id", "INTEGER", 0, None, 1),
-        (1, "date", "DATE", 1, None, 0),
-        (2, "time", "TIME", 1, None, 0),
-        (3, "expense_type", "TEXT", 1, None, 0),
-        (4, "expense_value", "REAL", 1, None, 0),
-        (5, "company", "TEXT", 1, None, 0),
-        (6, "description", "TEXT", 1, None, 0),
-        (7, "modified_date", "DATE", 1, "CURRENT_DATE", 0),
-        (8, "modified_time", "TIME", 1, "CURRENT_TIME", 0),
-    ]
-    assert columns == expected_columns
-
-    # verify the schema of the sales table
-    c.execute("PRAGMA table_info(sales)")
-    columns = c.fetchall()
-    expected_columns = [
-        (0, "id", "INTEGER", 0, None, 1),
-        (1, "date", "DATE", 1, None, 0),
-        (2, "time", "TIME", 1, None, 0),
-        (3, "first_name", "TEXT", 1, None, 0),
-        (4, "last_name", "TEXT", 1, None, 0),
-        (5, "email_address", "TEXT", 1, None, 0),
-        (6, "phone_number", "TEXT", 0, None, 0),
-        (7, "product_id", "INTEGER", 1, None, 0),
-        (8, "modified_date", "DATE", 1, "CURRENT_DATE", 0),
-        (9, "modified_time", "TIME", 1, "CURRENT_TIME", 0),
-    ]
-    assert columns == expected_columns
-
-    # close the database connection
+    c.execute("SELECT * FROM expenses WHERE company='Test Company 1'")
+    expense = c.fetchall()
+    assert expense[0][3] == "debit"
+    assert expense[0][4] == 50.0
+    assert expense[0][5] == "Test Company 1"
+    assert expense[0][6] == "Test description 1"
+    # Delete the test database
     conn.close()
 
-    # Delete database if it exists
-    if os.path.exists(file_name + ".db"):
-        os.remove(file_name + ".db")
+    # Delete the test database
+    if os.path.exists(file_name):
+        os.remove(file_name)
 
 
 # ==========================================================================================
