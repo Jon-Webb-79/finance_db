@@ -188,6 +188,42 @@ def add_expense(
     conn.close()
 
 
+# ------------------------------------------------------------------------------------------
+
+
+def update_expense_type(file_name: str, expense_id: int, expense_type: str) -> None:
+    """
+    Updates the expense_type column of an expense in the expenses table.
+
+    :param file_name: The name of the database file to connect to.
+    :param expense_id: The ID of the expense to update.
+    :param expense_type: The new value to set for the expense_type column.
+    """
+    # Check that the expense type is valid
+    if expense_type not in ["credit", "debit"]:
+        raise ValueError("Invalid expense type. Must be either 'credit' or 'debit'.")
+
+    if not os.path.exists(file_name):
+        msg = f"Database '{file_name}' does not exist."
+        sys.stderr.write(msg)
+        return
+    # open the database and update the expense
+    conn = None
+    try:
+        conn = sqlite3.connect(file_name)
+        c = conn.cursor()
+        c.execute(
+            f"UPDATE expenses SET expense_type='{expense_type}' WHERE id={expense_id}"
+        )
+        conn.commit()
+        sys.stdout.write("Expense type updated successfully.\n")
+    except sqlite3.Error as e:
+        sys.stderr.write(f"Error updating expense type: {e}\n")
+    finally:
+        if conn:
+            conn.close()
+
+
 # ==========================================================================================
 # ==========================================================================================
 # eof

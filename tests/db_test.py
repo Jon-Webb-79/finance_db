@@ -6,7 +6,7 @@ from io import StringIO
 
 import pytest
 
-from finance_db.database import add_expense, create_database
+from finance_db.database import add_expense, create_database, update_expense_type
 
 # ==========================================================================================
 # ==========================================================================================
@@ -185,6 +185,44 @@ def test_add_expense():
     c.execute("SELECT * FROM expenses WHERE company='Test Company 1'")
     expense = c.fetchall()
     assert expense[0][3] == "debit"
+    assert expense[0][4] == 50.0
+    assert expense[0][5] == "Test Company 1"
+    assert expense[0][6] == "Test description 1"
+    # Delete the test database
+    conn.close()
+
+    # Delete the test database
+    if os.path.exists(file_name):
+        os.remove(file_name)
+
+
+# ------------------------------------------------------------------------------------------
+
+
+def test_update_expense_type():
+    """
+    This function tests the update_expense_type function to ensure it properly enters
+    a row to the expense table
+    """
+    # Create a test database
+    file_name = "../data/test/test_database4"
+    create_database(file_name)
+    file_name += ".db"
+
+    # Add a debit expense to the database
+    expense_type = "debit"
+    expense_value = 50.0
+    company = "Test Company 1"
+    description = "Test description 1"
+    add_expense(file_name, expense_type, expense_value, company, description)
+    update_expense_type(file_name, 1, "credit")
+
+    # open the database and verify the expense was added
+    conn = sqlite3.connect(file_name)
+    c = conn.cursor()
+    c.execute("SELECT * FROM expenses WHERE company='Test Company 1'")
+    expense = c.fetchall()
+    assert expense[0][3] == "credit"
     assert expense[0][4] == 50.0
     assert expense[0][5] == "Test Company 1"
     assert expense[0][6] == "Test description 1"
